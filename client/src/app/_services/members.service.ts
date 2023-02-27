@@ -15,7 +15,7 @@ import { getPaginatedResult, getPaginationHeaders } from './paginationHelper';
 export class MembersService {
   baseUrl = environment.apiUrl;
   members: Member[] = [];
-  memberCashe = new Map();
+  memberCache = new Map();
   user: User | undefined
   userParams: UserParams | undefined
 
@@ -47,7 +47,7 @@ export class MembersService {
    }
 
   getMembers(userParams: UserParams){
-    const response = this.memberCashe.get(Object.values(userParams).join('-'));
+    const response = this.memberCache.get(Object.values(userParams).join('-'));
 
     if(response) return of(response)
 
@@ -60,7 +60,7 @@ export class MembersService {
 
     return getPaginatedResult<Member[]>(this.baseUrl + 'users',params, this.http).pipe(
       map(response => {
-        this.memberCashe.set(Object.values(userParams).join('-'), response);
+        this.memberCache.set(Object.values(userParams).join('-'), response);
         return response;
       })
     )
@@ -69,11 +69,10 @@ export class MembersService {
 
 
   getMember(username: string){
-    const member = [...this.memberCashe.values()]
+    const member = [...this.memberCache.values()]
       .reduce((arr, elem) => arr.concat(elem.result), [])
       .find((member: Member) => member.userName === username);
-
-    if(member) return of(member)
+    if (member) return of(member);
 
     return this.http.get<Member>(this.baseUrl + 'users/' + username);
   }
